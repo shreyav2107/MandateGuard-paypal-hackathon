@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { extractIntent, parseIntent } from "../lib/ai";
+import { explain, extractClaims, extractIntent, parseClaims, parseExplanation, parseIntent, templateExplanation } from "../lib/ai";
+import { compare } from "../lib/compare";
+import { paypalToTerms } from "../lib/terms";
+import { trap } from "./fixtures";
 
 const full = (over: object = {}) =>
   JSON.stringify({
@@ -50,4 +53,55 @@ describe("extractIntent", () => {
     const res = await extractIntent("max $10 a month");
     expect(res).toEqual({ intent: null, source: "off" });
   }, 30_000);
+});
+
+describe("parseClaims", () => {
+  const copy = "Start StreamNest Premium for just $1! Cancel anytime.";
+  const claims = (o: object) => JSON.stringify({ cancelAnytime: null, claimedPrice: null, quotes: [], ...o });
+
+  it("keeps claims backed by verbatim quotes, cancel quote first", () => {
+    expect(parseClaims(claims({ cancelAnytime: true, claimedPrice: 1, quotes: ["for just $1!", "cancel  ANYTIME."] }), copy))
+      .toEqual({ cancelAnytime: true, claimedPrice: 1, quotes: ["cancel  ANYTIME.", "for just $1!"] });
+  });
+
+  it("drops quotes that aren't in the copy, and claims left without support", () => {
+    expect(parseClaims(claims({ cancelAnytime: true, claimedPrice: 1, quotes: ["No contract, ever!", "only $1"] }), copy))
+      .toEqual({ cancelAnytime: null, claimedPrice: null, quotes: [] });
+  });
+
+  it("drops a claimed price that isn't in its quote", () => {
+    expect(parseClaims(claims({ claimedPrice: 0.99, quotes: ["for just $1!"] }), copy)).toMatchObject({ claimedPrice: null });
+  });
+
+  it("rejects malformed output", () => {
+    expect(parseClaims("{}", copy)).toBeNull();
+    expect(parseClaims(claims({ quotes: "Cancel anytime." }), copy)).toBeNull();
+  });
+});
+
+describe("explanation", () => {
+  const terms = paypalToTerms(trap);
+  const { findings } = compare({ maxRecurringAmount: 10, currency: "USD", expectedTrialDays: null, expectedTrialPrice: 1,
+    expectedInterval: "MONTH", maxCommitmentMonths: null, wantsOneTime: null }, terms);
+  const facts = JSON.stringify({ findings, terms });
+
+  it("number lock: accepts numbers from the facts, rejects invented ones", () => {
+    const ok = "This plan charges $69.99 per month for 24 months, $1,680.76 in total, not the $10 you expected.";
+    expect(parseExplanation(JSON.stringify({ explanation: ok }), facts)).toBe(ok);
+    expect(parseExplanation(JSON.stringify({ explanation: "You could save $500 a year." }), facts)).toBeNull();
+    expect(parseExplanation("not json", facts)).toBeNull();
+  });
+
+  it("template names the most serious problems", () => {
+    expect(templateExplanation(findings)).toBe(
+      "Check before you continue. You expected ≤ $10.00, but the actual terms are $69.99 per month. " +
+      "You expected no fixed term, but the actual terms are 24 months ($1680.76 total).");
+    expect(templateExplanation([])).toMatch(/match/);
+  });
+
+  it("falls back to the template when AI is off", async () => {
+    vi.stubEnv("AI_MODE", "mock");
+    expect(await explain(terms, findings, null)).toEqual({ explanation: templateExplanation(findings), source: "template" });
+    expect(await extractClaims("Cancel anytime.")).toEqual({ claims: null, source: "off" });
+  });
 });
