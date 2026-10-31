@@ -10,7 +10,8 @@
     "db:check": "tsx --env-file=.env.local scripts/db-check.ts",
     "db:migrate": "tsx --env-file=.env.local scripts/db-migrate.ts",
     "ai:check": "tsx --env-file=.env.local scripts/ai-check.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ai:eval": "tsx --env-file-if-exists=.env.local scripts/intent-eval.ts"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",
