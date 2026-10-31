@@ -43,6 +43,7 @@ async function main() {
   for (const [text, partial] of cases) {
     const expected = { ...none, ...partial };
     const { intent, source } = await extractIntent(text);
+    await new Promise((r) => setTimeout(r, Number(process.env.EVAL_DELAY_MS ?? 4000))); // stay under free-tier rate limits
     const wrong = intent ? KEYS.filter((k) => intent[k] !== expected[k]) : KEYS;
     if (intent && wrong.length === 0) correct++;
     console.log(`${wrong.length ? "✗" : "✓"} [${source}] ${text}`);
