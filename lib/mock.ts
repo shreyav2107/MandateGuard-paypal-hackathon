@@ -1,0 +1,116 @@
+import type { CheckpointResponse } from "./types";
+
+const intent: CheckpointResponse["intent"] = {
+  maxRecurringAmount: 10,
+  currency: "USD",
+  expectedTrialDays: null,
+  expectedTrialPrice: null,
+  expectedInterval: "MONTH",
+  maxCommitmentMonths: null,
+  wantsOneTime: null,
+};
+
+export const mockTrap: CheckpointResponse = {
+  id: "mock-trap",
+  intent,
+  terms: {
+    currency: "USD",
+    initialCharge: 1,
+    trialDays: 7,
+    trialPrice: 1,
+    recurringAmount: 69.99,
+    intervalUnit: "MONTH",
+    intervalCount: 1,
+    regularCycles: 24,
+    commitmentMonths: 24,
+    totalCommitted: 1679.76,
+    setupFee: 0,
+    taxPercent: 0,
+    taxInclusive: true,
+    startTime: null,
+    planOverridden: false,
+  },
+  findings: [
+    {
+      id: "F1",
+      field: "recurringAmount",
+      severity: "HIGH",
+      expected: "At most $10.00/month",
+      actual: "$69.99/month",
+      source: "deterministic",
+    },
+    {
+      id: "F2",
+      field: "commitment",
+      severity: "HIGH",
+      expected: "No more than $10.00/month, as requested",
+      actual: "24 monthly payments totaling $1,679.76",
+      source: "deterministic",
+    },
+  ],
+  maxSeverity: "HIGH",
+  requiresAck: true,
+  explanation:
+    "The offer starts with a $1 charge for 7 days. After that, it renews at $69.99 per month, which is above your $10 monthly limit. It also commits you to 24 monthly payments, so review the full cost before continuing.",
+};
+
+export const mockHonest: CheckpointResponse = {
+  id: "mock-honest",
+  intent,
+  terms: {
+    currency: "USD",
+    initialCharge: 0,
+    trialDays: null,
+    trialPrice: null,
+    recurringAmount: 9.99,
+    intervalUnit: "MONTH",
+    intervalCount: 1,
+    regularCycles: null,
+    commitmentMonths: null,
+    totalCommitted: null,
+    setupFee: 0,
+    taxPercent: 0,
+    taxInclusive: true,
+    startTime: null,
+    planOverridden: false,
+  },
+  findings: [],
+  maxSeverity: "NONE",
+  requiresAck: false,
+  explanation: null,
+};
+
+export const mockBorderline: CheckpointResponse = {
+  id: "mock-borderline",
+  intent,
+  terms: {
+    currency: "USD",
+    initialCharge: 0,
+    trialDays: null,
+    trialPrice: null,
+    recurringAmount: 10.99,
+    intervalUnit: "MONTH",
+    intervalCount: 1,
+    regularCycles: null,
+    commitmentMonths: null,
+    totalCommitted: null,
+    setupFee: 0,
+    taxPercent: 0,
+    taxInclusive: true,
+    startTime: null,
+    planOverridden: false,
+  },
+  findings: [
+    {
+      id: "F1",
+      field: "recurringAmount",
+      severity: "MEDIUM",
+      expected: "At most $10.00/month",
+      actual: "$10.99/month",
+      source: "deterministic",
+    },
+  ],
+  maxSeverity: "MEDIUM",
+  requiresAck: true,
+  explanation: "The monthly price is $0.99 above your stated limit. Check that this small difference works for your budget before continuing.",
+};
