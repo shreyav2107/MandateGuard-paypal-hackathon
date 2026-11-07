@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { evaluateCheckpoint } from "@/lib/checkpoint";
-import { DEMO_SUBSCRIPTIONS } from "@/lib/demo-subscriptions";
-import { PLANS } from "@/lib/plans";
-import type { Intent } from "@/lib/types";
+import { evaluateCheckpoint } from "../../../lib/checkpoint";
+import { DEMO_SUBSCRIPTIONS } from "../../../lib/demo-subscriptions";
+import { PLANS } from "../../../lib/plans";
+import type { Intent } from "../../../lib/types";
 
 const intentSchema = z.object({
   maxRecurringAmount: z.number().finite().nonnegative().nullable(),
