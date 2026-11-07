@@ -9,7 +9,12 @@
     "lint": "eslint",
     "db:check": "tsx --env-file=.env.local scripts/db-check.ts",
     "db:migrate": "tsx --env-file=.env.local scripts/db-migrate.ts",
-    "ai:check": "tsx --env-file=.env.local scripts/ai-check.ts"
+    "fixtures": "tsx --env-file=.env.local scripts/save-fixtures.ts",
+    "ai:check": "tsx --env-file=.env.local scripts/ai-check.ts",
+    "test": "vitest run",
+    "smoke": "tsx scripts/smoke-test.ts",
+    "ai:eval": "tsx --env-file-if-exists=.env.local scripts/intent-eval.ts",
+    "ai:demo": "tsx --env-file-if-exists=.env.local scripts/ai-demo.ts"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",
@@ -29,6 +34,7 @@
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }
