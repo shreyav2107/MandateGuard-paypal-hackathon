@@ -4,8 +4,6 @@ import { z } from "zod";
 import { checkMandate, type CheckMandateLog, type CheckSource } from "@/lib/gemini";
 import { getPool } from "@/lib/db";
 
-export const runtime = "nodejs";
-
 const requestSchema = z
   .object({
     description: z.string().trim().min(1),
