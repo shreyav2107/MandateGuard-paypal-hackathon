@@ -1,44 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MandateGuard
 
-## How the AI works
+MandateGuard helps shoppers compare what they expect to pay with the subscription terms they are about to accept. The current app is a working demo using server-owned sample PayPal-shaped subscriptions and simulated UPI mandates.
 
-Google Gemini turns a shopper's description into structured expectations and reads merchant marketing copy for advertised prices or cancellation claims. The application validates the model output, checks extracted numbers against the source text, and requires supporting quotes for merchant claims. If Gemini is unavailable or returns invalid output, the shopper can enter expectations manually and the app uses a deterministic explanation.
-
-The comparison engine in `lib/compare.ts` is ordinary TypeScript. It checks amounts, currency, billing frequency, trial terms, fixed commitments, fees, taxes, and supported marketing claims. Gemini does not decide whether terms match or whether a warning is required; it only extracts text fields and can phrase a summary of findings.
-
-The UPI route is a simulation over three fixed INR examples. It is not connected to NPCI, a bank, or a UPI app, and it does not create mandates or payments. A mandate's amount is treated as a maximum debit cap; the number of possible debit dates is not a promise that those debits will occur.
-
-## Getting Started
-
-First, run the development server:
+## Run the demo
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) for the team's checkpoint mock, or go to [http://localhost:3000/demo](http://localhost:3000/demo) for the live Part B engine and UPI simulator. Both pages run without credentials. To enable live Gemini extraction and explanations in the Part B demo, add a Gemini API key to `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```dotenv
+GEMINI_API_KEY=your_key
+AI_MODE=live
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Keep API keys in `.env.local` on the server. Do not add them to browser code or commit them.
 
-## Learn More
+## How a subscription check works
 
-To learn more about Next.js, take a look at the following resources:
+1. PayPal-shaped billing-cycle data is normalized into plain terms such as trial length, recurring price, interval, fixed commitment, setup fee, and taxes.
+2. Gemini can turn the shopper's sentence into structured expectations and extract claims from the merchant's copy. Outputs are schema-checked; inferred amounts and currencies must be supported by the source text, and merchant claims need exact supporting quotes.
+3. The deterministic comparison engine checks the actual terms against those expectations and supported claims. It assigns a severity and marks high-severity findings as requiring acknowledgement.
+4. Gemini may write a short explanation using only the checked facts. If AI is unavailable or its response is invalid, manual expectations and a fixed explanation template keep the check usable.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Gemini does not decide whether a plan matches or whether to warn. The checks live in ordinary TypeScript in `lib/compare.ts`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Demo routes
 
-## Deploy on Vercel
+- `POST /api/checkpoints` evaluates one of the server-owned PayPal sample plans. Send `planKey` (`honest`, `trap`, or `borderline`) and `intentText`; optionally send `intentOverride` to provide the structured expectations manually. The route does not accept client-supplied billing terms. The `/demo` page calls this route.
+- `GET /api/upi-sim/evaluate` lists three sample INR mandates and the simulation notice.
+- `POST /api/upi-sim/evaluate` evaluates a selected sample mandate. A mandate amount is a maximum debit cap, not a promise that every possible debit will happen.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The demo uses synthetic data. It does not start subscriptions, create mandates, or send payments. The UPI simulator is not connected to NPCI, a bank, or a UPI app.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Useful commands
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build
+npm run ai:eval   # live Gemini evaluation; requires GEMINI_API_KEY
+npm run ai:demo   # live Gemini end-to-end sample; requires GEMINI_API_KEY
+```
+
+The intent evaluation contains 20 shopper sentences in English and Hinglish and requires at least 18 exact field matches.
+
+## Current integration boundary
+
+`POST /api/checkpoints` is wired to safe, server-owned sample subscription fixtures for the hackathon demo. Connecting it to a real shopper's PayPal subscription requires the authenticated application flow to provide that subscription ID and the server to fetch the current subscription terms before evaluation. The UPI path remains a simulation.

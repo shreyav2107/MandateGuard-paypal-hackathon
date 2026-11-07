@@ -15,7 +15,7 @@ async function token() {
   return cached.token;
 }
 
-export async function paypal<T = any>(path: string, init: RequestInit = {}): Promise<T> {
+export async function paypal<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
   const r = await fetch(`${BASE}${path}`, {
     ...init,
     headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json", ...(init.headers || {}) },
