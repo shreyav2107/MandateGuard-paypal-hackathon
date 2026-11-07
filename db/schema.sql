@@ -27,3 +27,11 @@ create table if not exists audit_events (
   payload jsonb,
   created_at timestamptz default now()
 );
+create table if not exists webhook_events (
+  event_id text primary key,
+  type text not null,
+  resource_id text,
+  raw jsonb not null,
+  verified boolean not null,
+  created_at timestamptz default now()
+);
