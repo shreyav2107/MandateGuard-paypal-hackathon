@@ -1,5 +1,13 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## How the AI works
+
+Google Gemini turns a shopper's description into structured expectations and reads merchant marketing copy for advertised prices or cancellation claims. The application validates the model output, checks extracted numbers against the source text, and requires supporting quotes for merchant claims. If Gemini is unavailable or returns invalid output, the shopper can enter expectations manually and the app uses a deterministic explanation.
+
+The comparison engine in `lib/compare.ts` is ordinary TypeScript. It checks amounts, currency, billing frequency, trial terms, fixed commitments, fees, taxes, and supported marketing claims. Gemini does not decide whether terms match or whether a warning is required; it only extracts text fields and can phrase a summary of findings.
+
+The UPI route is a simulation over three fixed INR examples. It is not connected to NPCI, a bank, or a UPI app, and it does not create mandates or payments. A mandate's amount is treated as a maximum debit cap; the number of possible debit dates is not a promise that those debits will occur.
+
 ## Getting Started
 
 First, run the development server:
