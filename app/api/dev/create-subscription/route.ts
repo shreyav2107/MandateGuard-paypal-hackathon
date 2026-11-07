@@ -2,6 +2,10 @@ import { PLANS } from "@/lib/plans";
 import { paypal } from "@/lib/paypal";
 
 export async function POST(request: Request) {
+  if (process.env.NODE_ENV === "production") {
+    return new Response("Not found", { status: 404 });
+  }
+
   let body: unknown;
 
   try {
