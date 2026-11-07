@@ -1,10 +1,7 @@
 import { createHash } from "node:crypto";
-import type { Pool } from "pg";
 import { z } from "zod";
 import { checkMandate, type CheckMandateLog, type CheckSource } from "@/lib/gemini";
-import { getPool } from "@/lib/db";
-
-export const runtime = "nodejs";
+import { pool } from "@/lib/db";
 
 const requestSchema = z
   .object({
@@ -62,10 +59,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  let pool: Pool | undefined;
-
   try {
-    pool = await getPool();
     const mandateInsert = await pool.query<{ id: string }>(
       `INSERT INTO mandates (plan_id, description, max_amount, status)
        VALUES ($1, $2, $3, 'checked')
