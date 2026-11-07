@@ -33,6 +33,13 @@ describe("parseIntent", () => {
     expect(parseIntent(full({ expectedTrialPrice: 0 }), "a week trial")).toBeNull();
     expect(parseIntent(full({ maxRecurringAmount: 1499 }), "₹1,499 a year max")).not.toBeNull();
   });
+
+  it("does not infer a currency from a bare amount", () => {
+    expect(parseIntent(full({ maxRecurringAmount: 9.99, currency: "USD" }), "dont charge me more then 9.99 a month!!!"))
+      .toMatchObject({ maxRecurringAmount: 9.99, currency: null });
+    expect(parseIntent(full({ maxRecurringAmount: 15, currency: "USD" }), "max 15 bucks/mo"))
+      .toMatchObject({ maxRecurringAmount: 15, currency: "USD" });
+  });
 });
 
 describe("extractIntent", () => {

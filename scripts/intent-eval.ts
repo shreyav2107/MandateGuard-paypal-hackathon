@@ -39,8 +39,19 @@ const cases: [string, Partial<Intent>][] = [
 const KEYS = Object.keys(none) as (keyof Intent)[];
 
 async function main() {
+  const filterFlag = process.argv.indexOf("--filter");
+  const filter = (process.env.EVAL_FILTER ?? (filterFlag >= 0 ? process.argv[filterFlag + 1] : undefined))
+    ?.trim()
+    .toLowerCase();
+  const selectedCases = filter ? cases.filter(([text]) => text.toLowerCase().includes(filter)) : cases;
+  if (!selectedCases.length) {
+    console.error(`No intent evaluation case matched EVAL_FILTER=${filter}`);
+    process.exitCode = 1;
+    return;
+  }
+
   let correct = 0;
-  for (const [text, partial] of cases) {
+  for (const [text, partial] of selectedCases) {
     const expected = { ...none, ...partial };
     const { intent, source } = await extractIntent(text);
     await new Promise((r) => setTimeout(r, Number(process.env.EVAL_DELAY_MS ?? 4000))); // stay under free-tier rate limits
@@ -50,8 +61,9 @@ async function main() {
     for (const k of intent ? wrong : []) console.log(`     ${k}: expected ${expected[k]}, got ${intent![k]}`);
     if (!intent) console.log("     no intent returned (AI off, failed, or failed the number lock)");
   }
-  console.log(`\n${correct}/${cases.length} correct (goal: 18+)`);
-  if (correct < 18) process.exitCode = 1;
+  const goal = filter ? selectedCases.length : 18;
+  console.log(`\n${correct}/${selectedCases.length} correct (goal: ${goal}+)`);
+  if (correct < goal) process.exitCode = 1;
 }
 
 void main();
