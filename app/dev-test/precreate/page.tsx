@@ -70,25 +70,25 @@ export default function PrecreateTestPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-16">
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 bg-white px-4 py-10 text-neutral-950 sm:px-6 sm:py-16">
       <header className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
           MandateGuard · Sandbox
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Pre-created subscription test</h1>
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Pre-created subscription test</h1>
         <p className="max-w-2xl text-neutral-600">
           Create a subscription first, then use its stored ID to start PayPal checkout.
         </p>
       </header>
 
-      <section className="flex flex-wrap gap-3" aria-label="Choose a plan">
+      <section className="flex flex-col gap-3 sm:flex-row sm:flex-wrap" aria-label="Choose a plan">
         {plans.map((plan) => (
           <button
             key={plan}
             type="button"
             onClick={() => void createSubscription(plan)}
             disabled={loadingPlan !== null}
-            className="rounded-lg border border-neutral-300 px-5 py-3 font-medium capitalize transition hover:border-neutral-900 disabled:cursor-wait disabled:opacity-60"
+            className="w-full rounded-lg border border-neutral-300 px-5 py-3 font-medium capitalize transition hover:border-neutral-900 disabled:cursor-wait disabled:bg-neutral-200 sm:w-auto"
           >
             {loadingPlan === plan ? "Creating…" : plan}
           </button>
@@ -98,7 +98,7 @@ export default function PrecreateTestPage() {
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
 
       {id && (
-        <section className="flex flex-col gap-4 rounded-xl border border-neutral-200 p-6">
+        <section className="flex min-w-0 flex-col gap-4 rounded-xl border border-neutral-200 p-4 sm:p-6">
           <h2 className="text-xl font-semibold">Subscription created</h2>
           <p className="text-sm text-neutral-700">
             Subscription ID: <code className="break-all">{id}</code>
