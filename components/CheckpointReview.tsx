@@ -1,20 +1,109 @@
 "use client";
 
 import { useState } from "react";
+import PayPalSubscribe from "./PayPalSubscribe";
 import FindingCard from "./FindingCard";
 import { mockTrap } from "../lib/mock";
-import type { Intent } from "../lib/types";
+import type { CheckpointResponse, Intent } from "../lib/types";
 
-export default function CheckpointReview() {
-  const [intent, setIntent] = useState<Intent | null>(mockTrap.intent);
+export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<CheckpointResponse> | null }) {
+  const data = checkpoint ?? mockTrap;
+  const checkpointId = data.id ?? null;
+  const [intent, setIntent] = useState<Intent | null>(data.intent ?? mockTrap.intent);
   const [acknowledged, setAcknowledged] = useState<Record<string, boolean>>({});
   const [decision, setDecision] = useState<"declined" | "continued" | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const [verifiedStatus, setVerifiedStatus] = useState<string | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
-  const highFindings = mockTrap.findings.filter((finding) => finding.severity === "HIGH");
+  const findings = data.findings ?? mockTrap.findings;
+  const explanation = data.explanation ?? mockTrap.explanation;
+  const highFindings = findings.filter((finding) => finding.severity === "HIGH");
   const canContinue = highFindings.every((finding) => acknowledged[finding.id]);
 
   function updateIntent<K extends keyof Intent>(key: K, value: Intent[K]) {
     setIntent((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  async function submitDecision(nextDecision: "PROCEED" | "ABANDON") {
+    if (!checkpointId) return;
+
+    setSubmitting(true);
+    setDecisionError(null);
+
+    try {
+      const payload = {
+        decision: nextDecision,
+        ackedIds: nextDecision === "PROCEED"
+          ? findings.filter((finding) => finding.severity === "HIGH" && acknowledged[finding.id]).map((finding) => finding.id)
+          : [],
+      };
+
+      const response = await fetch(`/api/checkpoints/${checkpointId}/decision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = (await response.json().catch(() => null)) as
+        | { error?: string; missing?: string[]; subscriptionId?: string }
+        | null;
+
+      if (response.status === 400 && result?.error === "ack_required") {
+        setDecisionError("Please acknowledge each high-severity issue before continuing.");
+        return;
+      }
+
+      if (response.status === 409 && result?.error === "terms_changed") {
+        setDecisionError("These terms changed, please review again");
+        window.location.reload();
+        return;
+      }
+
+      if (!response.ok) {
+        const message = result?.error === "already_decided"
+          ? "That decision has already been recorded."
+          : "We couldn’t submit your decision right now.";
+        setDecisionError(message);
+        return;
+      }
+
+      if (nextDecision === "PROCEED") {
+        const nextSubscriptionId = result?.subscriptionId ?? null;
+        if (nextSubscriptionId) {
+          setSubscriptionId(nextSubscriptionId);
+        }
+        setDecision("continued");
+      } else {
+        setDecision("declined");
+      }
+    } catch {
+      setDecisionError("We couldn’t submit your decision right now.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function verifySubscription() {
+    if (!checkpointId) return;
+    setVerifyError(null);
+
+    try {
+      const response = await fetch(`/api/checkpoints/${checkpointId}/verify`, { method: "POST" });
+      const result = (await response.json().catch(() => null)) as { error?: string; status?: string } | null;
+
+      if (!response.ok) {
+        throw new Error(result?.error === "not_proceeded"
+          ? "This checkpoint has not been approved yet."
+          : "We couldn’t verify this subscription.");
+      }
+
+      setVerifiedStatus(result?.status ?? "UNKNOWN");
+    } catch (error) {
+      setVerifyError(error instanceof Error ? error.message : "We couldn’t verify this subscription.");
+    }
   }
 
   return (
@@ -108,9 +197,9 @@ export default function CheckpointReview() {
 
         <section aria-labelledby="findings-title" className="space-y-3">
           <h2 id="findings-title" className="text-lg font-semibold">What we found</h2>
-          {mockTrap.findings.length > 0 ? (
+          {findings.length > 0 ? (
             <div className="space-y-3">
-              {mockTrap.findings.map((finding) => (
+              {findings.map((finding) => (
                 <FindingCard
                   key={finding.id}
                   finding={finding}
@@ -128,28 +217,35 @@ export default function CheckpointReview() {
           )}
         </section>
 
-        {mockTrap.explanation ? (
+        {explanation ? (
           <section aria-labelledby="explanation-title" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 id="explanation-title" className="font-semibold">A closer look</h2>
-            <p className="mt-2 leading-relaxed text-slate-700">{mockTrap.explanation}</p>
+            <p className="mt-2 leading-relaxed text-slate-700">{explanation}</p>
           </section>
+        ) : null}
+
+        {decisionError ? (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {decisionError}
+          </div>
         ) : null}
 
         <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end">
           <button
             type="button"
-            onClick={() => setDecision("declined")}
-            className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+            disabled={submitting}
+            onClick={() => submitDecision("ABANDON")}
+            className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Don’t subscribe
           </button>
           <button
             type="button"
-            disabled={!canContinue}
-            onClick={() => setDecision("continued")}
+            disabled={!canContinue || submitting}
+            onClick={() => submitDecision("PROCEED")}
             className="rounded-lg bg-indigo-700 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
           >
-            I understand, continue
+            {submitting ? "Submitting…" : "I understand, continue"}
           </button>
         </div>
 
@@ -157,6 +253,35 @@ export default function CheckpointReview() {
           <p role="status" className="text-center text-sm text-slate-700">
             {decision === "declined" ? "You chose not to subscribe." : "You acknowledged the high severity findings."}
           </p>
+        ) : null}
+
+        {subscriptionId && !verifiedStatus ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold">Approve the subscription</h2>
+            <div className="mt-4">
+              <PayPalSubscribe
+                getSubscriptionId={() => Promise.resolve({ subscriptionId })}
+                onApproved={() => {
+                  void verifySubscription();
+                }}
+              />
+            </div>
+            <p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Subscription ID: {subscriptionId}</p>
+          </section>
+        ) : null}
+
+        {verifyError ? (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {verifyError}
+          </div>
+        ) : null}
+
+        {verifiedStatus ? (
+          <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Approved</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-emerald-900">Subscription is active</h2>
+            <p className="mt-3 text-lg text-emerald-800">Final status: {verifiedStatus}</p>
+          </section>
         ) : null}
       </div>
     </main>
