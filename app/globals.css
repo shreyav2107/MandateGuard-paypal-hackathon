@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer utilities {
+  :not([hidden]):not([disabled]):focus-visible {
+    outline: 3px solid #1d4ed8 !important;
+    outline-offset: 3px !important;
+  }
+}
+
+:focus-visible {
+  transition: none !important;
+}

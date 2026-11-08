@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 type AuditEvent = {
   id: string;
@@ -97,6 +97,47 @@ function AuditBadge({
   );
 }
 
+function AuditTimeline({ events }: { events: AuditEvent[] }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      {events.length > 0 ? (
+        <ol className="space-y-4">
+          {events.map((event) => (
+            <li key={event.id} className="relative min-w-0 pl-6">
+              <span className="absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-2 border-indigo-500 bg-indigo-100" />
+              <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-semibold text-slate-800">{event.type}</p>
+                    <p className="break-words text-xs uppercase tracking-[0.16em] text-slate-500">{event.source}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {event.verified ? (
+                      <AuditBadge value="✔ verified" tone="success" />
+                    ) : (
+                      <AuditBadge value="unverified" tone="neutral" />
+                    )}
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-slate-500">{formatDate(event.created_at)}</p>
+                {event.payload !== undefined && event.payload !== null ? (
+                  <pre className="mt-3 whitespace-pre-wrap break-words rounded-lg bg-slate-100 p-3 text-xs text-slate-700">
+                    {formatValue(event.payload)}
+                  </pre>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-600">
+          No activity recorded for this checkpoint.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AuditPage() {
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,9 +158,9 @@ export default function AuditPage() {
         if (!isMounted) return;
 
         setRows(Array.isArray(data) ? data : []);
-      } catch (loadError) {
+      } catch {
         if (!isMounted) return;
-        setError(loadError instanceof Error ? loadError.message : "Unable to load audit history.");
+        setError("Unable to load audit history. Please try again.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -155,8 +196,8 @@ export default function AuditPage() {
   if (error) {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-rose-200 bg-white p-8 text-center shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rose-600">Audit unavailable</p>
+        <div role="alert" className="mx-auto max-w-2xl rounded-2xl border border-rose-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rose-700">Audit unavailable</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight">We couldn’t load the audit history.</h1>
           <p className="mt-3 text-slate-600">{error}</p>
         </div>
@@ -167,7 +208,7 @@ export default function AuditPage() {
   if (!rows.length) {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center shadow-sm sm:p-12">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 text-2xl text-indigo-700">
             ✓
           </div>
@@ -183,7 +224,7 @@ export default function AuditPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex items-end justify-between gap-4">
+        <div className="mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end sm:gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Audit log</p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight">Checkpoint history</h1>
@@ -193,7 +234,50 @@ export default function AuditPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="space-y-3 md:hidden">
+          {rows.map((row) => {
+            const isExpanded = !!expanded[row.id];
+            const severity = (row.max_severity ?? "UNKNOWN").toUpperCase();
+            const decision = (row.decision ?? "PENDING").toUpperCase();
+            const paypalStatus = (row.paypal_status ?? "PENDING").toUpperCase();
+
+            return (
+              <article key={row.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-sm text-slate-600">{formatDate(row.created_at)}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${severityClasses[severity] ?? severityClasses.UNKNOWN}`}>
+                    {severity}
+                  </span>
+                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${decisionClasses[decision] ?? decisionClasses.DEFAULT}`}>
+                    {decision}
+                  </span>
+                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${paypalClasses[paypalStatus] ?? paypalClasses.DEFAULT}`}>
+                    PayPal {paypalStatus}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpanded((current) => ({
+                      ...current,
+                      [row.id]: !current[row.id],
+                    }))
+                  }
+                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-indigo-200 hover:text-indigo-700"
+                >
+                  {isExpanded ? "Hide timeline" : "View timeline"}
+                </button>
+                {isExpanded ? (
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <AuditTimeline events={row.events} />
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:block">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-left">
               <thead className="bg-slate-50">
@@ -213,7 +297,7 @@ export default function AuditPage() {
                   const paypalStatus = (row.paypal_status ?? "PENDING").toUpperCase();
 
                   return (
-                    <>
+                    <Fragment key={row.id}>
                       <tr key={row.id} className="bg-white transition hover:bg-slate-50">
                         <td className="px-5 py-4 text-sm text-slate-700">{formatDate(row.created_at)}</td>
                         <td className="px-5 py-4">
@@ -256,46 +340,11 @@ export default function AuditPage() {
                       {isExpanded && (
                         <tr key={`${row.id}-timeline`} className="bg-slate-50">
                           <td colSpan={5} className="px-5 py-5">
-                            <div className="rounded-xl border border-slate-200 bg-white p-4">
-                              {row.events.length > 0 ? (
-                                <ol className="space-y-4">
-                                  {row.events.map((event) => (
-                                    <li key={event.id} className="relative pl-6">
-                                      <span className="absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-2 border-indigo-500 bg-indigo-100" />
-                                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                          <div>
-                                            <p className="text-sm font-semibold text-slate-800">{event.type}</p>
-                                            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{event.source}</p>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            {event.verified ? (
-                                              <AuditBadge value="✔ verified" tone="success" />
-                                            ) : (
-                                              <AuditBadge value="unverified" tone="neutral" />
-                                            )}
-                                          </div>
-                                        </div>
-                                        <p className="mt-3 text-xs text-slate-500">{formatDate(event.created_at)}</p>
-                                        {event.payload !== undefined && event.payload !== null && (
-                                          <pre className="mt-3 overflow-x-auto rounded-lg bg-slate-100 p-3 text-xs text-slate-700">
-                                            {formatValue(event.payload)}
-                                          </pre>
-                                        )}
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ol>
-                              ) : (
-                                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-600">
-                                  No activity recorded for this checkpoint.
-                                </div>
-                              )}
-                            </div>
+                            <AuditTimeline events={row.events} />
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>

@@ -29,9 +29,9 @@ export default function CheckpointPageClient({ id }: { id: string }) {
           setCheckpoint(payload as CheckpointResponse);
           setError(null);
         }
-      } catch (caughtError) {
+      } catch {
         if (isMounted) {
-          setError(caughtError instanceof Error ? caughtError.message : "We couldn’t load this checkpoint right now.");
+          setError("We couldn’t load this checkpoint right now.");
         }
       } finally {
         if (isMounted) {
@@ -50,9 +50,9 @@ export default function CheckpointPageClient({ id }: { id: string }) {
   if (loading) {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm sm:p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-700">Loading</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">Checking your subscription review…</h1>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Checking your subscription review…</h1>
         </div>
       </main>
     );
@@ -61,9 +61,9 @@ export default function CheckpointPageClient({ id }: { id: string }) {
   if (error || !checkpoint) {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
-        <div className="mx-auto max-w-xl rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center shadow-sm">
+        <div role="alert" className="mx-auto max-w-xl rounded-2xl border border-rose-200 bg-rose-50 p-5 text-center shadow-sm sm:p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rose-700">Review unavailable</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">We couldn’t load this checkpoint</h1>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">We couldn’t load this checkpoint</h1>
           <p className="mt-3 text-slate-700">{error ?? "Please try again in a moment."}</p>
         </div>
       </main>
