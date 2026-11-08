@@ -1,163 +1,128 @@
 "use client";
 
-import { useState } from "react";
-import FindingCard from "../components/FindingCard";
-import { mockTrap } from "../lib/mock";
-import type { Intent } from "../lib/types";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { PLANS } from "../lib/plans";
 
-export default function CheckpointDemoPage() {
-  const [intent, setIntent] = useState<Intent | null>(mockTrap.intent);
-  const [acknowledged, setAcknowledged] = useState<Record<string, boolean>>({});
-  const [decision, setDecision] = useState<"declined" | "continued" | null>(null);
+export default function StorePage() {
+  const router = useRouter();
+  const [selectedKey, setSelectedKey] = useState<string>(PLANS[0].key);
+  const [intentText, setIntentText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const highFindings = mockTrap.findings.filter((finding) => finding.severity === "HIGH");
-  const canContinue = highFindings.every((finding) => acknowledged[finding.id]);
+  const plan = PLANS.find((candidate) => candidate.key === selectedKey) ?? PLANS[0];
 
-  function updateIntent<K extends keyof Intent>(key: K, value: Intent[K]) {
-    setIntent((current) => (current ? { ...current, [key]: value } : current));
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const value = intentText.trim();
+    if (!value) {
+      setError("Tell us what you expect to pay before continuing.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/checkpoints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planKey: plan.key,
+          intentText: value,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as { id?: string; error?: string } | null;
+
+      if (!response.ok || !payload?.id) {
+        const message = payload?.error === "plan_not_configured"
+          ? "This plan isn’t available right now. Please try another option."
+          : "We couldn’t review that subscription. Please try again.";
+        throw new Error(message);
+      }
+
+      router.push("/checkpoint/" + payload.id);
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : "We couldn’t review that subscription. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 sm:px-6 sm:py-12">
-      <div className="mx-auto max-w-3xl space-y-8">
-        <header className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-wider text-indigo-700">MandateGuard demo</p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Review this subscription</h1>
-          <p className="max-w-2xl text-slate-600">
-            Compare the offer with your expectations before deciding whether to continue.
+    <main className="min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:px-6 sm:py-12">
+      <div className="mx-auto max-w-5xl space-y-8">
+        <header className="space-y-3 text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-700">StreamNest</p>
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Pick the plan that fits your budget</h1>
+          <p className="mx-auto max-w-2xl text-base text-slate-600 sm:text-lg">
+            MandateGuard checks a subscription against what you expect, before you approve it.
           </p>
         </header>
 
-        <section aria-labelledby="intent-title" className="space-y-3">
-          <div>
-            <h2 id="intent-title" className="text-lg font-semibold">Your expectations</h2>
-            <p className="text-sm text-slate-600">Edit any value to make your preferences clear.</p>
+        {error ? (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
           </div>
-          {intent ? (
-            <div className="flex flex-wrap gap-2">
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
-                <span className="text-slate-600">Max monthly</span>
-                <span className="text-slate-500">$</span>
-                <input
-                  aria-label="Maximum monthly price in USD"
-                  className="w-14 bg-transparent font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={intent.maxRecurringAmount ?? ""}
-                  onChange={(event) => updateIntent("maxRecurringAmount", event.target.value === "" ? null : Number(event.target.value))}
-                />
-                <span>/ month</span>
-              </label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
-                <span className="text-slate-600">Currency</span>
-                <select
-                  aria-label="Preferred currency"
-                  className="bg-transparent font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={intent.currency ?? "USD"}
-                  onChange={(event) => updateIntent("currency", event.target.value)}
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                </select>
-              </label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
-                <span className="text-slate-600">Billing</span>
-                <select
-                  aria-label="Expected billing interval"
-                  className="bg-transparent font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={intent.expectedInterval ?? "MONTH"}
-                  onChange={(event) => updateIntent("expectedInterval", event.target.value as Intent["expectedInterval"])}
-                >
-                  <option value="DAY">Daily</option>
-                  <option value="WEEK">Weekly</option>
-                  <option value="MONTH">Monthly</option>
-                  <option value="YEAR">Yearly</option>
-                </select>
-              </label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
-                <span className="text-slate-600">Max commitment</span>
-                <input
-                  aria-label="Maximum commitment in months"
-                  className="w-12 bg-transparent text-right font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
-                  type="number"
-                  min="0"
-                  placeholder="Any"
-                  value={intent.maxCommitmentMonths ?? ""}
-                  onChange={(event) => updateIntent("maxCommitmentMonths", event.target.value === "" ? null : Number(event.target.value))}
-                />
-                <span>months</span>
-              </label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
-                <span className="text-slate-600">One-time purchase</span>
-                <select
-                  aria-label="One-time purchase preference"
-                  className="bg-transparent font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={intent.wantsOneTime === null ? "either" : intent.wantsOneTime ? "yes" : "no"}
-                  onChange={(event) => updateIntent("wantsOneTime", event.target.value === "either" ? null : event.target.value === "yes")}
-                >
-                  <option value="either">Either</option>
-                  <option value="yes">Prefer</option>
-                  <option value="no">No</option>
-                </select>
-              </label>
-            </div>
-          ) : null}
-        </section>
-
-        <section aria-labelledby="findings-title" className="space-y-3">
-          <h2 id="findings-title" className="text-lg font-semibold">What we found</h2>
-          {mockTrap.findings.length > 0 ? (
-            <div className="space-y-3">
-              {mockTrap.findings.map((finding) => (
-                <FindingCard
-                  key={finding.id}
-                  finding={finding}
-                  acknowledgementLabel="I understand this finding and want to continue."
-                  acknowledged={Boolean(acknowledged[finding.id])}
-                  onAcknowledgedChange={(value) => setAcknowledged((current) => ({ ...current, [finding.id]: value }))}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900" role="status">
-              <h3 className="font-semibold">Matches what you expect</h3>
-              <p className="mt-1 text-sm">We didn’t find any differences from the expectations you shared.</p>
-            </div>
-          )}
-        </section>
-
-        {mockTrap.explanation ? (
-          <section aria-labelledby="explanation-title" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 id="explanation-title" className="font-semibold">A closer look</h2>
-            <p className="mt-2 leading-relaxed text-slate-700">{mockTrap.explanation}</p>
-          </section>
         ) : null}
 
-        <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={() => setDecision("declined")}
-            className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
-          >
-            Don’t subscribe
-          </button>
-          <button
-            type="button"
-            disabled={!canContinue}
-            onClick={() => setDecision("continued")}
-            className="rounded-lg bg-indigo-700 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
-          >
-            I understand, continue
-          </button>
+        <div className="grid gap-5 md:grid-cols-3">
+          {PLANS.map((planOption) => {
+            const isSelected = planOption.key === selectedKey;
+
+            return (
+              <article
+                key={planOption.key}
+                className={`flex h-full flex-col rounded-2xl border bg-white p-5 shadow-sm transition ${
+                  isSelected ? "border-indigo-600 ring-2 ring-indigo-200" : "border-slate-200"
+                }`}
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{planOption.title}</span>
+                  {isSelected ? <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">Selected</span> : null}
+                </div>
+
+                <h2 className="text-2xl font-bold tracking-tight">{planOption.headline}</h2>
+                <p className="mt-4 flex-1 text-sm leading-6 text-slate-600">{planOption.copy}</p>
+
+                {!isSelected ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedKey(planOption.key);
+                      setError(null);
+                    }}
+                    className="mt-6 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  >
+                    Choose
+                  </button>
+                ) : (
+                  <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+                    <label className="block text-sm font-medium text-slate-700">
+                      What do you expect to pay?
+                      <input
+                        value={intentText}
+                        onChange={(event) => setIntentText(event.target.value)}
+                        placeholder="max $10 a month, 7-day trial"
+                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full rounded-lg bg-indigo-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-indigo-300"
+                    >
+                      {submitting ? "Checking…" : "Continue"}
+                    </button>
+                  </form>
+                )}
+              </article>
+            );
+          })}
         </div>
-
-        {decision ? (
-          <p role="status" className="text-center text-sm text-slate-700">
-            {decision === "declined" ? "You chose not to subscribe." : "You acknowledged the high severity findings."}
-          </p>
-        ) : null}
       </div>
     </main>
   );
