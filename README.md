@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/mandateguard-cover.svg" alt="MandateGuard — clarity before commitment" width="100%" />
+  <img src="docs/mandateguard-cover.svg" alt="MandateGuard: clarity before commitment, with a sample subscription price mismatch" width="100%" />
 
   <p><strong>Catch subscription surprises before you say yes.</strong><br />Turn billing language into clear terms, compare those terms with what you expected, and surface the differences before approval.</p>
 
