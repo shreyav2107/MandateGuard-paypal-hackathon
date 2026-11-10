@@ -20,8 +20,9 @@ In PowerShell, use `Copy-Item .env.example .env.local` for the copy step. Keep `
 
 ## App and API
 
-- `/` is the team's checkpoint review UI.
+- `/` is the PayPal Sandbox store flow. The shopper chooses a sample plan, enters expectations, and reviews a checkpoint before any subscription approval.
 - `/demo` runs the Part B terms engine against server-owned sample plans and the UPI simulator.
+- `/upi-sim` is the standalone UPI simulator page; it uses the same sample mandates and deterministic comparison rules.
 - `POST /api/demo-checkpoints` evaluates the sample plans. It accepts a plan key and shopper expectations; billing terms always come from server fixtures.
 - `GET` and `POST /api/upi-sim/evaluate` list and evaluate simulated UPI mandates. A mandate amount is a maximum debit cap, not a promise that every possible debit will happen.
 - `POST /api/checkpoints` creates a checkpoint from a configured PayPal Sandbox plan and stores the result in Neon. It requires the PayPal plan IDs and database configuration below.
