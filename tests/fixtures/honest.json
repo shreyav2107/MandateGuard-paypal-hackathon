@@ -66,7 +66,7 @@
       "method": "GET"
     },
     {
-      "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions?ba_token=BA-6L4546386T533001M",
+      "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions",
       "rel": "approve",
       "method": "GET"
     }

@@ -1,19 +1,30 @@
 import { paypal } from "../lib/paypal";
+import type { Interval } from "../lib/types";
+
+type PayPalProductResponse = { id: string };
+type PayPalPlanResponse = { id: string };
+type BillingCycleSeed = {
+  sequence: number;
+  tenure_type: "TRIAL" | "REGULAR";
+  total_cycles: number;
+  frequency: { interval_unit: Interval; interval_count: number };
+  pricing_scheme?: { fixed_price: { value: string; currency_code: string } };
+};
 
 const usd = (v: string) => ({ value: v, currency_code: "USD" });
-const cycle = (seq: number, tenure: "TRIAL" | "REGULAR", unit: string, count: number, total: number, price?: string) => ({
+const cycle = (seq: number, tenure: "TRIAL" | "REGULAR", unit: Interval, count: number, total: number, price?: string): BillingCycleSeed => ({
   sequence: seq, tenure_type: tenure, total_cycles: total,
   frequency: { interval_unit: unit, interval_count: count },
   ...(price ? { pricing_scheme: { fixed_price: usd(price) } } : {}),
 });
 
 async function main() {
-  const product = await paypal("/v1/catalogs/products", {
+  const product = await paypal<PayPalProductResponse>("/v1/catalogs/products", {
     method: "POST",
     body: JSON.stringify({ name: "StreamNest Premium", type: "SERVICE", category: "SOFTWARE" }),
   });
-  const mk = (name: string, billing_cycles: any[]) =>
-    paypal("/v1/billing/plans", {
+  const mk = (name: string, billing_cycles: BillingCycleSeed[]) =>
+    paypal<PayPalPlanResponse>("/v1/billing/plans", {
       method: "POST",
       body: JSON.stringify({
         product_id: product.id, name, billing_cycles,

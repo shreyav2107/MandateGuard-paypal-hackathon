@@ -61,6 +61,12 @@ export default function StorePage() {
           <p className="mx-auto max-w-2xl text-base text-slate-600 sm:text-lg">
             MandateGuard checks a subscription against what you expect, before you approve it.
           </p>
+          <a
+            href="/demo"
+            className="inline-flex w-fit items-center rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+          >
+            Try the live terms and UPI demo →
+          </a>
         </header>
 
         {error ? (

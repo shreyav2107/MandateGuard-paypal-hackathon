@@ -34,7 +34,7 @@ const emptyIntent: Intent = {
   wantsOneTime: null,
 };
 
-async function safeLogEvent(checkpointId: string | null, type: string, payload: unknown) {
+async function safeLogEvent(checkpointId: string | null, type: string, payload: Record<string, unknown>) {
   await logEvent(checkpointId, type, "app", payload).catch(() => undefined);
 }
 

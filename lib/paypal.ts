@@ -70,7 +70,7 @@ async function accessToken(): Promise<string> {
   return tokenRequest;
 }
 
-export async function paypal<T = any>(path: string, init: RequestInit = {}): Promise<T> {
+export async function paypal<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${await accessToken()}`);
   if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");

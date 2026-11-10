@@ -1,21 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MandateGuard
 
-## Setup
+MandateGuard helps shoppers compare what they expect to pay with the subscription terms they are about to accept. It combines a deterministic terms comparison engine, AI-assisted text extraction, PayPal Sandbox checkpoint flows, and a simulated UPI demo.
 
-### Requirements and install
+Live deployment: [mandateguard-tbjq.onrender.com](https://mandateguard-tbjq.onrender.com).
 
-Use Node.js 20.9 or later. Clone the repository, install dependencies, and create your local environment file:
+## Run locally
+
+Use Node.js 20.9 or later. Clone the repository, install dependencies, copy the environment template, and start the development server:
 
 ```bash
 git clone https://github.com/shreyav2107/MandateGuard-paypal-hackathon.git
 cd MandateGuard-paypal-hackathon
 npm install
 cp .env.example .env.local
+npm run dev
 ```
 
-In PowerShell, use `Copy-Item .env.example .env.local` for the copy step. Keep `.env.local` private and out of Git.
+In PowerShell, use `Copy-Item .env.example .env.local` for the copy step. Keep `.env.local` private and out of Git. Open [http://localhost:3000](http://localhost:3000).
 
-### Environment variables
+## App and API
+
+- `/` is the PayPal Sandbox store flow. The shopper chooses a sample plan, enters expectations, and reviews a checkpoint before any subscription approval.
+- `/demo` runs the Part B terms engine against server-owned sample plans and the UPI simulator.
+- `/upi-sim` is the standalone UPI simulator page; it uses the same sample mandates and deterministic comparison rules.
+- `POST /api/demo-checkpoints` evaluates the sample plans. It accepts a plan key and shopper expectations; billing terms always come from server fixtures.
+- `GET` and `POST /api/upi-sim/evaluate` list and evaluate simulated UPI mandates. A mandate amount is a maximum debit cap, not a promise that every possible debit will happen.
+- `POST /api/checkpoints` creates a checkpoint from a configured PayPal Sandbox plan and stores the result in Neon. It requires the PayPal plan IDs and database configuration below.
+- `/api/checkpoints/[id]`, `/api/checkpoints/[id]/decision`, and `/api/checkpoints/[id]/verify` read a checkpoint, record the shopper's decision, and re-check the terms.
+- `/api/audit` exposes audit records. `/api/webhooks/paypal` receives PayPal Sandbox webhook events.
+
+The sample PayPal-shaped plans and UPI mandates are synthetic. The `/demo` flow does not create subscriptions, mandates, or payments. The production checkpoint routes use PayPal Sandbox when configured.
+
+## Environment variables
 
 Set these in `.env.local` for local work and in the Render service environment for deployment:
 
@@ -34,18 +50,26 @@ Set these in `.env.local` for local work and in the Render service environment f
 | `AI_MODE` | Set to `mock` to disable AI calls, or `live` to use Gemini. |
 | `DATABASE_URL` | Neon Postgres connection string, including its SSL parameters. |
 
-### PayPal Sandbox
+## PayPal Sandbox and database setup
 
 1. In the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/), create Sandbox Business and Personal test accounts. Use the Business account as the seller and the Personal account as the buyer.
-2. Create a Sandbox REST app for the Business account. Copy its Client ID and Secret into the matching environment variables; use the Sandbox API base for `PAYPAL_BASE`.
-3. Create the three subscription plans by running `npx tsx --env-file=.env.local scripts/seed-paypal.ts`. Copy the printed plan IDs into `PLAN_HONEST`, `PLAN_TRAP`, and `PLAN_BORDERLINE`.
+2. Create a Sandbox REST app for the Business account. Copy its Client ID and Secret into the matching environment variables and keep `PAYPAL_BASE` set to the Sandbox API base.
+3. Create the three Sandbox plans with `npx tsx --env-file=.env.local scripts/seed-paypal.ts`, then copy the printed IDs into `PLAN_HONEST`, `PLAN_TRAP`, and `PLAN_BORDERLINE`.
+4. Create a Postgres project in [Neon](https://neon.tech/) and put its connection string in `DATABASE_URL`.
+5. Create the database tables with `npm run db:migrate`; check connectivity with `npm run db:check`.
 
-### Neon database
+## How the checks work
 
-1. Create a Postgres project in [Neon](https://neon.tech/) and copy its connection string into `DATABASE_URL`.
-2. Create the schema with `npm run db:migrate`. Check connectivity with `npm run db:check`.
+1. PayPal billing-cycle data is normalized into plain terms such as trial length, recurring price, interval, commitment, setup fee, and taxes.
+2. Gemini can turn the shopper's sentence into structured expectations and extract claims from merchant copy. The app validates model output, checks that inferred numbers appear in the source text, and requires exact quotes for merchant claims.
+3. The deterministic comparison engine checks the actual terms against expectations and supported claims. It assigns a severity and requires acknowledgement for high-severity findings.
+4. Gemini can write a short explanation using only checked facts. If AI is unavailable or returns invalid output, manual expectations and a fixed explanation template keep the check usable.
 
-### Useful npm scripts
+Gemini does not decide whether a plan matches or whether to warn. Those decisions live in ordinary TypeScript in `lib/compare.ts`. The UPI route is a simulation and is not connected to NPCI, a bank, or a UPI app.
+
+Run `npm run ai:eval` with a live Gemini key to score the 20 English and Hinglish shopper examples. The target is at least 18 exact field matches; this evaluation is separate from the normal test and build commands.
+
+## Useful commands
 
 | Command | Purpose |
 |---|---|
@@ -59,53 +83,12 @@ Set these in `.env.local` for local work and in the Render service environment f
 | `npm run ai:check` | Check Gemini connectivity. |
 | `npm run ai:eval` | Run the intent extraction evaluation. |
 | `npm run ai:demo` | Run the AI demo script. |
-| `npm run fixtures` | Create one Sandbox subscription per plan and save sanitized PayPal responses under `tests/fixtures/`. |
+| `npm run fixtures` | Create Sandbox subscriptions and save sanitized PayPal responses under `tests/fixtures/`. |
 
-The fixture and seed scripts make PayPal API calls and are intended to be run manually after configuring Sandbox credentials. They are not run by the build or migration.
+The PayPal seed and fixture scripts make Sandbox API calls. Run them manually after configuring Sandbox credentials; the build and database migration do not run them.
 
-### Render and PayPal webhooks
+## Render and PayPal webhooks
 
-Deploy the service to Render using `render.yaml`, then add the environment variables in the Render dashboard. After the service has an HTTPS URL, open the Sandbox REST app in the PayPal Developer Dashboard and add a webhook at `https://YOUR-SERVICE.onrender.com/api/webhooks/paypal`. Subscribe to `BILLING.SUBSCRIPTION.*` and `PAYMENT.SALE.*` events. Copy the webhook ID into Render as `PAYPAL_WEBHOOK_ID`, then send a Sandbox event or complete a Sandbox approval and review the recorded verification status through `/api/audit`.
+Deploy using `render.yaml`, then add the environment variables in the Render dashboard. After the service has an HTTPS URL, register a Sandbox webhook at `https://YOUR-SERVICE.onrender.com/api/webhooks/paypal`. Subscribe to `BILLING.SUBSCRIPTION.*` and `PAYMENT.SALE.*` events, then set the webhook ID as `PAYPAL_WEBHOOK_ID`.
 
-## How the AI works
-
-Google Gemini turns a shopper's description into structured expectations and reads merchant marketing copy for advertised prices or cancellation claims. The application validates the model output, checks extracted numbers against the source text, and requires supporting quotes for merchant claims. If Gemini is unavailable or returns invalid output, the shopper can enter expectations manually and the app uses a deterministic explanation.
-
-The comparison engine in `lib/compare.ts` is ordinary TypeScript. It checks amounts, currency, billing frequency, trial terms, fixed commitments, fees, taxes, and supported marketing claims. Gemini does not decide whether terms match or whether a warning is required; it only extracts text fields and can phrase a summary of findings.
-
-The UPI route is a simulation over three fixed INR examples. It is not connected to NPCI, a bank, or a UPI app, and it does not create mandates or payments. A mandate's amount is treated as a maximum debit cap; the number of possible debit dates is not a promise that those debits will occur.
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [the Part B demo walkthrough](docs/part-b-demo-script.md) for the demo flow.
