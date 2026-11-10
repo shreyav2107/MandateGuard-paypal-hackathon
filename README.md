@@ -9,6 +9,8 @@
     <a href="assets/MandateGuard-demo.mp4"><strong>Watch the demo video</strong></a>
     &nbsp; · &nbsp;
     <a href="#screenshots"><strong>Explore screenshots</strong></a>
+    &nbsp; · &nbsp;
+    <a href="docs/mandateguard-devpost-thumbnail.png"><strong>Project thumbnail</strong></a>
   </p>
 
   <p>

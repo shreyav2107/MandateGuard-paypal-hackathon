@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">MandateGuard — subscriptions shouldn’t have plot twists</title>
+  <desc id="desc">A clean green and cream MandateGuard thumbnail showing a subscription expectation of ten dollars compared with an offer of sixty-nine dollars and ninety-nine cents per month.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fbf9"/>
+      <stop offset="1" stop-color="#e8f4ed"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#15755e"/>
+      <stop offset="1" stop-color="#45b889"/>
+    </linearGradient>
+    <filter id="shadow" x="-12%" y="-10%" width="124%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#173c30" flood-opacity=".09"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="675" rx="28" fill="url(#background)"/>
+
+  <g transform="translate(76 54) scale(.43)">
+    <path d="M100 0 188 33v67c0 66-37 112-88 143-51-31-88-77-88-143V33L100 0Z" fill="url(#shield)"/>
+    <path d="m58 103 29 29 57-62" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+  </g>
+  <text x="190" y="113" fill="#17362d" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="700" letter-spacing="-.6">MandateGuard</text>
+  <text x="193" y="150" fill="#19785f" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" letter-spacing="3.1">CLARITY BEFORE COMMITMENT</text>
+
+  <text x="78" y="294" fill="#17362d" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.2">Subscriptions shouldn’t</text>
+  <text x="78" y="354" fill="#17362d" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.2">have plot twists.</text>
+  <rect x="80" y="387" width="58" height="5" rx="2.5" fill="#2e9a72"/>
+  <text x="80" y="435" fill="#53675e" font-family="Arial, Helvetica, sans-serif" font-size="21">Check the billing terms against what you expect</text>
+  <text x="80" y="467" fill="#53675e" font-family="Arial, Helvetica, sans-serif" font-size="21">before you approve a recurring payment.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="646" y="72" width="480" height="530" rx="28" fill="#ffffff" stroke="#dce9e1" stroke-width="2"/>
+    <circle cx="690" cy="120" r="6" fill="#2e9a72"/>
+    <text x="708" y="126" fill="#29463b" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="1.8">BEFORE YOU APPROVE</text>
+    <path d="M684 151H1088" stroke="#e7eee9" stroke-width="2"/>
+
+    <rect x="684" y="178" width="404" height="132" rx="18" fill="#f5f9f6"/>
+    <text x="710" y="217" fill="#75877e" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" letter-spacing="1.5">YOU EXPECT</text>
+    <text x="710" y="271" fill="#17362d" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">≤ $10 / month</text>
+
+    <rect x="684" y="330" width="404" height="132" rx="18" fill="#fff8f3" stroke="#f2e1d6" stroke-width="1.5"/>
+    <text x="710" y="369" fill="#a36748" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" letter-spacing="1.5">OFFER TERMS</text>
+    <text x="710" y="423" fill="#17362d" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">$69.99 / month</text>
+
+    <rect x="684" y="491" width="185" height="38" rx="19" fill="#fff1e8"/>
+    <circle cx="706" cy="510" r="5" fill="#c96a38"/>
+    <text x="720" y="515" fill="#a85025" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" letter-spacing=".45">PRICE MISMATCH</text>
+    <text x="684" y="565" fill="#72847a" font-family="Arial, Helvetica, sans-serif" font-size="15">A clearer choice, before the charge.</text>
+  </g>
+</svg>
