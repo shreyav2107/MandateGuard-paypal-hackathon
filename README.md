@@ -1,8 +1,45 @@
 # MandateGuard
 
-MandateGuard helps shoppers compare what they expect to pay with the subscription terms they are about to accept. It combines a deterministic terms comparison engine, AI-assisted text extraction, PayPal Sandbox checkpoint flows, and a simulated UPI demo.
+An AI checkpoint that checks a subscription against what you expect before you approve it
 
-Live deployment: [mandateguard-tbjq.onrender.com](https://mandateguard-tbjq.onrender.com).
+Live app: [https://mandateguard-tbjq.onrender.com](https://mandateguard-tbjq.onrender.com)
+
+The free Render instance can take up to a minute to wake up.
+
+## Screenshots
+
+![Store page with subscription plans](docs/01-store.png)
+*Choose a subscription plan.*
+
+![Checkpoint showing the subscription review](docs/02-checkpoint.png)
+*Review the plan against your expectations.*
+
+![PayPal approval screen](docs/03-paypal.png)
+*Approve through PayPal Sandbox.*
+
+![Audit log](docs/04-audit.png)
+*Inspect the checkpoint audit trail.*
+
+![Checkpoint demo example 1](docs/checkpoint%20demo-06.png)
+*A sample checkpoint review.*
+
+![Checkpoint demo example 2](docs/checkpoint%20demo-07.png)
+*Another checkpoint review example.*
+
+![UPI simulator](docs/05-upi.png)
+*Try the simulated UPI mandate flow.*
+
+## Architecture
+
+![MandateGuard architecture diagram](docs/architecture.png)
+
+A shopper chooses a subscription or sample mandate and provides expectations. The app extracts relevant offer details, using Gemini as a helper where configured, then normalizes them into terms. A deterministic comparison checks those terms against the shopper’s expectations and produces findings before approval. The app records the decision and, for PayPal Sandbox subscriptions, verifies the approved terms and status.
+
+## Limitations
+
+- PayPal is Sandbox only.
+- The UPI simulator uses sample mandates and isn’t connected to NPCI or any bank.
+- Gemini output is a fallback-protected helper; comparisons are deterministic.
 
 ## Run locally
 
@@ -92,3 +129,5 @@ The PayPal seed and fixture scripts make Sandbox API calls. Run them manually af
 Deploy using `render.yaml`, then add the environment variables in the Render dashboard. After the service has an HTTPS URL, register a Sandbox webhook at `https://YOUR-SERVICE.onrender.com/api/webhooks/paypal`. Subscribe to `BILLING.SUBSCRIPTION.*` and `PAYMENT.SALE.*` events, then set the webhook ID as `PAYPAL_WEBHOOK_ID`.
 
 See [the Part B demo walkthrough](docs/part-b-demo-script.md) for the demo flow.
+
+License: [MIT](LICENSE).
