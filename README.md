@@ -194,3 +194,5 @@ PayPal seed and fixture commands make Sandbox API calls. Run them manually after
 Deploy with `render.yaml`, then configure the environment variables in the Render service. Register a Sandbox webhook at `https://YOUR-SERVICE.onrender.com/api/webhooks/paypal`, subscribe to `BILLING.SUBSCRIPTION.*` and `PAYMENT.SALE.*`, and set its ID as `PAYPAL_WEBHOOK_ID`.
 
 See the [Part B walkthrough script](docs/part-b-demo-script.md) for a short presentation flow.
+
+License: [MIT](LICENSE).
