@@ -26,11 +26,11 @@ export default function FindingCard({
       className={`rounded-xl border p-4 sm:p-5 ${severityStyles[finding.severity]}`}
       aria-labelledby={`${checkboxId}-title`}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
         <h3 id={`${checkboxId}-title`} className="text-sm font-semibold uppercase tracking-wide">
           {finding.severity} finding
         </h3>
-        <span className="text-xs opacity-75">{finding.field}</span>
+        <span className="min-w-0 break-words text-xs opacity-75">{finding.field}</span>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">

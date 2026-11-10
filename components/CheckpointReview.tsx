@@ -16,6 +16,8 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
   const [decisionError, setDecisionError] = useState<string | null>(null);
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
   const [verification, setVerification] = useState<{ status: string; sameTerms: boolean } | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifiedStatus, setVerifiedStatus] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
 
   const findings = data.findings ?? mockTrap.findings;
@@ -87,7 +89,8 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
   }
 
   async function verifySubscription() {
-    if (!checkpointId) return;
+    if (!checkpointId || verifying) return;
+    setVerifying(true);
     setVerifyError(null);
 
     try {
@@ -97,9 +100,10 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
         | null;
 
       if (!response.ok) {
-        throw new Error(result?.error === "not_proceeded"
+        setVerifyError(result?.error === "not_proceeded"
           ? "This checkpoint has not been approved yet."
-          : "We couldn’t verify this subscription.");
+          : "We couldn’t verify this subscription. Please try again.");
+        return;
       }
 
       if (typeof result?.status !== "string" || typeof result.sameTerms !== "boolean") {
@@ -107,8 +111,10 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
       }
 
       setVerification({ status: result.status, sameTerms: result.sameTerms });
-    } catch (error) {
-      setVerifyError(error instanceof Error ? error.message : "We couldn’t verify this subscription.");
+    } catch {
+      setVerifyError("We couldn’t verify this subscription. Please try again.");
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -129,13 +135,13 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
             <p className="text-sm text-slate-600">Edit any value to make your preferences clear.</p>
           </div>
           {intent ? (
-            <div className="flex flex-wrap gap-2">
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <label className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm sm:w-auto sm:justify-start sm:rounded-full">
                 <span className="text-slate-600">Max monthly</span>
                 <span className="text-slate-500">$</span>
                 <input
                   aria-label="Maximum monthly price in USD"
-                  className="w-14 bg-transparent font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-14 min-w-0 bg-transparent font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
                   type="number"
                   min="0"
                   step="0.01"
@@ -144,7 +150,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
                 />
                 <span>/ month</span>
               </label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
+              <label className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm sm:w-auto sm:justify-start sm:rounded-full">
                 <span className="text-slate-600">Currency</span>
                 <select
                   aria-label="Preferred currency"
@@ -157,7 +163,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
                   <option value="GBP">GBP</option>
                 </select>
               </label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
+              <label className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm sm:w-auto sm:justify-start sm:rounded-full">
                 <span className="text-slate-600">Billing</span>
                 <select
                   aria-label="Expected billing interval"
@@ -171,11 +177,11 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
                   <option value="YEAR">Yearly</option>
                 </select>
               </label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
+              <label className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm sm:w-auto sm:justify-start sm:rounded-full">
                 <span className="text-slate-600">Max commitment</span>
                 <input
                   aria-label="Maximum commitment in months"
-                  className="w-12 bg-transparent text-right font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-12 min-w-0 bg-transparent text-right font-semibold outline-none placeholder:text-slate-600 focus:ring-2 focus:ring-indigo-500"
                   type="number"
                   min="0"
                   placeholder="Any"
@@ -184,7 +190,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
                 />
                 <span>months</span>
               </label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm">
+              <label className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-sm shadow-sm sm:w-auto sm:justify-start sm:rounded-full">
                 <span className="text-slate-600">One-time purchase</span>
                 <select
                   aria-label="One-time purchase preference"
@@ -231,7 +237,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
         ) : null}
 
         {decisionError ? (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {decisionError}
           </div>
         ) : null}
@@ -241,7 +247,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
             type="button"
             disabled={submitting}
             onClick={() => submitDecision("ABANDON")}
-            className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:cursor-not-allowed sm:w-auto"
           >
             Don’t subscribe
           </button>
@@ -249,7 +255,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
             type="button"
             disabled={!canContinue || submitting}
             onClick={() => submitDecision("PROCEED")}
-            className="rounded-lg bg-indigo-700 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+            className="w-full rounded-lg bg-indigo-700 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-700 sm:w-auto"
           >
             {submitting ? "Submitting…" : "I understand, continue"}
           </button>
@@ -262,7 +268,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
         ) : null}
 
         {subscriptionId && !verification ? (
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section aria-busy={verifying} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
             <h2 className="text-lg font-semibold">Approve the subscription</h2>
             <div className="mt-4">
               <PayPalSubscribe
@@ -272,12 +278,13 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
                 }}
               />
             </div>
-            <p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Subscription ID: {subscriptionId}</p>
+            {verifying ? <p role="status" className="mt-3 text-sm text-slate-600">Verifying your subscription with PayPal…</p> : null}
+            <p className="mt-3 break-all text-xs uppercase tracking-wide text-slate-500">Subscription ID: {subscriptionId}</p>
           </section>
         ) : null}
 
         {verifyError ? (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {verifyError}
           </div>
         ) : null}

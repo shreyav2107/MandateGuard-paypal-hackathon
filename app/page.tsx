@@ -45,8 +45,8 @@ export default function StorePage() {
       }
 
       router.push("/checkpoint/" + payload.id);
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "We couldn’t review that subscription. Please try again.");
+    } catch {
+      setError("We couldn’t review that subscription. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -64,7 +64,7 @@ export default function StorePage() {
         </header>
 
         {error ? (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         ) : null}
@@ -95,7 +95,7 @@ export default function StorePage() {
                       setSelectedKey(planOption.key);
                       setError(null);
                     }}
-                    className="mt-6 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    className="mt-6 w-full rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto"
                   >
                     Choose
                   </button>
@@ -107,13 +107,13 @@ export default function StorePage() {
                         value={intentText}
                         onChange={(event) => setIntentText(event.target.value)}
                         placeholder="max $10 a month, 7-day trial"
-                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-600 transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                       />
                     </label>
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full rounded-lg bg-indigo-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-indigo-300"
+                      className="w-full rounded-lg bg-indigo-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-slate-700"
                     >
                       {submitting ? "Checking…" : "Continue"}
                     </button>

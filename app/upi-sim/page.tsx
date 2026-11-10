@@ -51,8 +51,8 @@ export default function UpiSimulatorPage() {
         if (!active) return;
         setMandates(data.mandates);
         setNotice(data.notice);
-      } catch (error) {
-        if (active) setLoadError(error instanceof Error ? error.message : "Could not load the sample mandates.");
+      } catch {
+        if (active) setLoadError("Could not load the sample mandates. Please try again.");
       } finally {
         if (active) setLoading(false);
       }
@@ -79,13 +79,20 @@ export default function UpiSimulatorPage() {
       });
       const data = (await response.json()) as UpiEvaluation | { error?: string };
       if (!response.ok) {
-        throw new Error("error" in data && data.error ? data.error : "Could not evaluate this mandate.");
+        const errorMessage = "error" in data ? data.error : undefined;
+        const friendlyMessage = errorMessage === "Unknown mock mandate"
+          ? "This sample mandate is no longer available. Please refresh and try again."
+          : errorMessage === "Invalid request body" || errorMessage === "Invalid JSON body"
+            ? "Please check your expectation and try again."
+            : "Could not evaluate this mandate. Please try again.";
+        setEvaluationErrors((current) => ({ ...current, [mandateId]: friendlyMessage }));
+        return;
       }
       setResults((current) => ({ ...current, [mandateId]: data as UpiEvaluation }));
-    } catch (error) {
+    } catch {
       setEvaluationErrors((current) => ({
         ...current,
-        [mandateId]: error instanceof Error ? error.message : "Could not evaluate this mandate.",
+        [mandateId]: "Could not evaluate this mandate. Please try again.",
       }));
     } finally {
       setEvaluatingId(null);
@@ -128,7 +135,7 @@ export default function UpiSimulatorPage() {
             maxLength={1200}
             rows={2}
             placeholder="For example: I expect to pay up to ₹149 monthly."
-            className="mt-2 block w-full resize-y rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+            className="mt-2 block w-full resize-y rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm shadow-sm outline-none placeholder:text-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
           />
         </section>
 
@@ -183,7 +190,7 @@ export default function UpiSimulatorPage() {
                       type="button"
                       onClick={() => evaluateMandate(mandate.id)}
                       disabled={evaluatingId !== null}
-                      className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-indigo-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60"
+                      className="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-lg bg-indigo-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:bg-slate-700 sm:w-auto"
                     >
                       {isEvaluating ? "Evaluating…" : result ? "Evaluate again" : "Evaluate mandate"}
                     </button>
