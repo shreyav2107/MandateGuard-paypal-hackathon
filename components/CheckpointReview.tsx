@@ -15,6 +15,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
   const [submitting, setSubmitting] = useState(false);
   const [decisionError, setDecisionError] = useState<string | null>(null);
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const [verification, setVerification] = useState<{ status: string; sameTerms: boolean } | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifiedStatus, setVerifiedStatus] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
@@ -94,7 +95,9 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
 
     try {
       const response = await fetch(`/api/checkpoints/${checkpointId}/verify`, { method: "POST" });
-      const result = (await response.json().catch(() => null)) as { error?: string; status?: string } | null;
+      const result = (await response.json().catch(() => null)) as
+        | { error?: string; status?: string; sameTerms?: boolean }
+        | null;
 
       if (!response.ok) {
         setVerifyError(result?.error === "not_proceeded"
@@ -103,7 +106,11 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
         return;
       }
 
-      setVerifiedStatus(result?.status ?? "UNKNOWN");
+      if (typeof result?.status !== "string" || typeof result.sameTerms !== "boolean") {
+        throw new Error("We couldn’t verify this subscription.");
+      }
+
+      setVerification({ status: result.status, sameTerms: result.sameTerms });
     } catch {
       setVerifyError("We couldn’t verify this subscription. Please try again.");
     } finally {
@@ -260,7 +267,7 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
           </p>
         ) : null}
 
-        {subscriptionId && !verifiedStatus ? (
+        {subscriptionId && !verification ? (
           <section aria-busy={verifying} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
             <h2 className="text-lg font-semibold">Approve the subscription</h2>
             <div className="mt-4">
@@ -282,11 +289,35 @@ export default function CheckpointReview({ checkpoint }: { checkpoint?: Partial<
           </div>
         ) : null}
 
-        {verifiedStatus ? (
+        {verification && !verification.sameTerms ? (
+          <section role="alert" className="rounded-2xl border border-amber-300 bg-amber-50 p-6 text-amber-950 shadow-sm">
+            <h2 className="text-lg font-semibold">Subscription terms don’t match</h2>
+            <p className="mt-2 text-sm">
+              The approved subscription’s terms differ from what you reviewed. Please don’t continue with this subscription.
+            </p>
+            <p className="mt-2 text-sm">Final status: {verification.status}</p>
+          </section>
+        ) : null}
+
+        {verification && verification.status !== "ACTIVE" ? (
+          <section role="status" className="rounded-2xl border border-slate-200 bg-slate-100 p-6 text-slate-800 shadow-sm">
+            <h2 className="text-lg font-semibold">Approval is still pending</h2>
+            <p className="mt-2 text-sm">Your subscription isn’t active yet. Please try again.</p>
+            <button
+              type="button"
+              onClick={() => void verifySubscription()}
+              className="mt-4 rounded-lg bg-indigo-700 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+            >
+              Try again
+            </button>
+          </section>
+        ) : null}
+
+        {verification?.sameTerms && verification.status === "ACTIVE" ? (
           <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Approved</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-emerald-900">Subscription is active</h2>
-            <p className="mt-3 text-lg text-emerald-800">Final status: {verifiedStatus}</p>
+            <p className="mt-3 text-lg text-emerald-800">Final status: {verification.status}</p>
           </section>
         ) : null}
       </div>
