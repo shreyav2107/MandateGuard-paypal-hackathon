@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">MandateGuard — clarity before commitment</title>
+  <desc id="desc">A shield and checkmark beside the MandateGuard name on a deep navy and emerald gradient.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="0.56" stop-color="#111b35"/>
+      <stop offset="1" stop-color="#123b3b"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8d7cff"/>
+      <stop offset="1" stop-color="#53e0ad"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#54e0ad" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#54e0ad" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#ffffff" stroke-opacity=".045" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="360" rx="28" fill="url(#background)"/>
+  <rect width="1600" height="360" rx="28" fill="url(#grid)"/>
+  <circle cx="1430" cy="40" r="330" fill="url(#glow)"/>
+  <circle cx="1450" cy="352" r="215" fill="none" stroke="#7de6bd" stroke-opacity=".16" stroke-width="2"/>
+  <circle cx="1450" cy="352" r="255" fill="none" stroke="#7de6bd" stroke-opacity=".08" stroke-width="2"/>
+  <g transform="translate(118 83)">
+    <path d="M100 0 188 33v67c0 66-37 112-88 143-51-31-88-77-88-143V33L100 0Z" fill="url(#mark)"/>
+    <path d="m58 103 29 29 57-62" fill="none" stroke="#0b1020" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+  </g>
+  <text x="365" y="151" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700" letter-spacing="1">MandateGuard</text>
+  <text x="370" y="215" fill="#b9c5dc" font-family="Arial, Helvetica, sans-serif" font-size="25" letter-spacing="7">CLARITY BEFORE COMMITMENT</text>
+  <rect x="370" y="258" width="292" height="42" rx="21" fill="#ffffff" fill-opacity=".09" stroke="#ffffff" stroke-opacity=".13"/>
+  <circle cx="393" cy="279" r="6" fill="#53e0ad"/>
+  <text x="411" y="286" fill="#e4fff4" font-family="Arial, Helvetica, sans-serif" font-size="17" letter-spacing="1">AI-ASSISTED · RULE-CHECKED</text>
+</svg>
