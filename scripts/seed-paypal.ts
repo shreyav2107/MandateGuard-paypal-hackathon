@@ -41,4 +41,7 @@ async function main() {
 
   console.log({ PLAN_HONEST: honest.id, PLAN_TRAP: trap.id, PLAN_BORDERLINE: border.id });
 }
-main();
+main().catch(() => {
+  console.error("PayPal seeding failed");
+  process.exitCode = 1;
+});

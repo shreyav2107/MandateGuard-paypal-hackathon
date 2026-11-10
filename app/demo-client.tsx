@@ -102,7 +102,7 @@ export default function DemoClient() {
     setEvaluation(null);
     setAcknowledged(false);
     try {
-      const endpoint = mode === "paypal" ? "/api/checkpoints" : "/api/upi-sim/evaluate";
+      const endpoint = mode === "paypal" ? "/api/demo-checkpoints" : "/api/upi-sim/evaluate";
       const payload = mode === "paypal"
         ? { planKey, intentText: expectation, ...(manualMode ? { intentOverride: manualIntent } : {}) }
         : { mandateId, intentText: expectation, ...(manualMode ? { intentOverride: manualIntent } : {}) };

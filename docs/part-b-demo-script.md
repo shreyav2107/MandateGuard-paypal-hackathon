@@ -2,8 +2,8 @@
 
 ## Before recording
 
-1. Start the app with `npm run dev` and open `http://localhost:3000`.
-2. For live Gemini extraction, configure `GEMINI_API_KEY` in `.env.local`. The demo still runs without it; use the manual expectations form for a stable result.
+1. Start the app with `npm run dev` and open `http://localhost:3000/demo`.
+2. The PayPal sample checks use `POST /api/demo-checkpoints` and server-owned fixture data. For live Gemini extraction, configure `GEMINI_API_KEY` and `AI_MODE=live` in `.env.local`. The demo still works without a key; use the manual expectations form for a stable result.
 3. Keep the screen on the MandateGuard page. No PayPal or UPI payment is created during this walkthrough.
 
 ## 90-second walkthrough
@@ -31,4 +31,4 @@
 - If Gemini is off, invalid, or rate-limited, use the manual form. The deterministic terms comparison still works and the explanation falls back to a fixed template.
 - Use **Basic** to show a plan whose recurring price matches the $10 monthly expectation.
 - Use **Premium** to show the stronger mismatch and the merchant’s cancellation promise against a fixed term.
-- The sample subscription data is PayPal-shaped fixture data. It is not a live shopper subscription.
+- The sample subscription data is PayPal-shaped fixture data served by `/api/demo-checkpoints`. It is not a live shopper subscription.

@@ -1,0 +1,68 @@
+{
+  "status": "APPROVAL_PENDING",
+  "id": "I-WD0SW05YV04W",
+  "plan_id": "P-0CU63283PM1503149NLTBD3Q",
+  "start_time": "2026-11-07T14:57:56Z",
+  "quantity": "1",
+  "create_time": "2026-11-07T14:57:56Z",
+  "custom_id": "fixture-borderline",
+  "plan_overridden": false,
+  "plan": {
+    "product_id": "PROD-22R34954SR6226427",
+    "name": "Borderline: 3 days free, then $119.88/year",
+    "billing_cycles": [
+      {
+        "frequency": {
+          "interval_unit": "DAY",
+          "interval_count": 3
+        },
+        "tenure_type": "TRIAL",
+        "sequence": 1,
+        "total_cycles": 1
+      },
+      {
+        "pricing_scheme": {
+          "fixed_price": {
+            "currency_code": "USD",
+            "value": "119.88"
+          }
+        },
+        "frequency": {
+          "interval_unit": "YEAR",
+          "interval_count": 1
+        },
+        "tenure_type": "REGULAR",
+        "sequence": 2,
+        "total_cycles": 0
+      }
+    ],
+    "payment_preferences": {
+      "service_type": "PREPAID",
+      "auto_bill_outstanding": true,
+      "setup_fee": {
+        "currency_code": "USD",
+        "value": "0.0"
+      },
+      "setup_fee_failure_action": "CONTINUE",
+      "payment_failure_threshold": 3
+    },
+    "quantity_supported": false
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WD0SW05YV04W",
+      "rel": "edit",
+      "method": "PATCH"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-WD0SW05YV04W?fields=plan",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions",
+      "rel": "approve",
+      "method": "GET"
+    }
+  ]
+}

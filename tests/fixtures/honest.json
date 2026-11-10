@@ -1,0 +1,74 @@
+{
+  "status": "APPROVAL_PENDING",
+  "id": "I-8TMCYDUHWWH8",
+  "plan_id": "P-5YL65768NU978130PNLTBD3A",
+  "start_time": "2026-11-07T14:57:51Z",
+  "quantity": "1",
+  "create_time": "2026-11-07T14:57:51Z",
+  "custom_id": "fixture-honest",
+  "plan_overridden": false,
+  "plan": {
+    "product_id": "PROD-22R34954SR6226427",
+    "name": "Honest: $1 for 7 days, then $9.99/mo, cancel anytime",
+    "billing_cycles": [
+      {
+        "pricing_scheme": {
+          "fixed_price": {
+            "currency_code": "USD",
+            "value": "1.0"
+          }
+        },
+        "frequency": {
+          "interval_unit": "DAY",
+          "interval_count": 7
+        },
+        "tenure_type": "TRIAL",
+        "sequence": 1,
+        "total_cycles": 1
+      },
+      {
+        "pricing_scheme": {
+          "fixed_price": {
+            "currency_code": "USD",
+            "value": "9.99"
+          }
+        },
+        "frequency": {
+          "interval_unit": "MONTH",
+          "interval_count": 1
+        },
+        "tenure_type": "REGULAR",
+        "sequence": 2,
+        "total_cycles": 0
+      }
+    ],
+    "payment_preferences": {
+      "service_type": "PREPAID",
+      "auto_bill_outstanding": true,
+      "setup_fee": {
+        "currency_code": "USD",
+        "value": "0.0"
+      },
+      "setup_fee_failure_action": "CONTINUE",
+      "payment_failure_threshold": 3
+    },
+    "quantity_supported": false
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-8TMCYDUHWWH8",
+      "rel": "edit",
+      "method": "PATCH"
+    },
+    {
+      "href": "https://api.sandbox.paypal.com/v1/billing/subscriptions/I-8TMCYDUHWWH8?fields=plan",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://www.sandbox.paypal.com/webapps/billing/subscriptions",
+      "rel": "approve",
+      "method": "GET"
+    }
+  ]
+}

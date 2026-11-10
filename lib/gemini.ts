@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
-import { getPool } from "./db";
+import { pool } from "./db";
 
 const mandateSchema = z
   .object({
@@ -55,7 +55,6 @@ async function evaluateMandate(description: string): Promise<Evaluation> {
   const descriptionHash = createHash("sha256")
     .update(normalizedDescription)
     .digest("hex");
-  const pool = await getPool();
   const cachedRows = await pool.query(
     `SELECT ai_verdict AS verdict, ai_reason AS reason, risk_score
        FROM checks

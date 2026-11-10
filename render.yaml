@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: mandateguard
+    runtime: node
+    plan: free
+    region: ohio
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_BASE
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: PLAN_HONEST
+        sync: false
+      - key: PLAN_TRAP
+        sync: false
+      - key: PLAN_BORDERLINE
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        sync: false
+      - key: GEMINI_FALLBACK_MODEL
+        sync: false
+      - key: AI_MODE
+        sync: false
+      - key: DATABASE_URL
+        sync: false

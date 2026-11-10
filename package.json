@@ -9,8 +9,10 @@
     "lint": "eslint",
     "db:check": "tsx --env-file=.env.local scripts/db-check.ts",
     "db:migrate": "tsx --env-file=.env.local scripts/db-migrate.ts",
+    "fixtures": "tsx --env-file=.env.local scripts/save-fixtures.ts",
     "ai:check": "tsx --env-file=.env.local scripts/ai-check.ts",
     "test": "vitest run",
+    "smoke": "tsx scripts/smoke-test.ts",
     "ai:eval": "tsx --env-file-if-exists=.env.local scripts/intent-eval.ts",
     "ai:demo": "tsx --env-file-if-exists=.env.local scripts/ai-demo.ts"
   },

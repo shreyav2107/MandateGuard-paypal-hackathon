@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { POST } from "../app/api/checkpoints/route";
+import { POST } from "../app/api/demo-checkpoints/route";
 
 const intentOverride = {
   maxRecurringAmount: 10,
@@ -12,14 +12,14 @@ const intentOverride = {
 };
 
 function request(body: string): Request {
-  return new Request("http://localhost/api/checkpoints", {
+  return new Request("http://localhost/api/demo-checkpoints", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body,
   });
 }
 
-describe("POST /api/checkpoints", () => {
+describe("POST /api/demo-checkpoints", () => {
   beforeEach(() => vi.stubEnv("AI_MODE", "mock"));
   afterEach(() => vi.unstubAllEnvs());
 
