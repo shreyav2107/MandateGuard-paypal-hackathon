@@ -36,7 +36,7 @@ The AI helps read text. **Deterministic TypeScript rules make the comparison and
   <a href="assets/MandateGuard-demo.mp4">
     <img src="docs/screenshots/09_consumer_demo_findings.png" alt="Click to open the MandateGuard demo video. The screen shows a premium subscription with three review findings." width="92%" />
   </a>
-  <p><sub>Click the preview to open the committed MP4 demo · 7.9 MB</sub></p>
+  <p><sub>Click the preview to open the committed MP4 demo · 11.7 MB</sub></p>
 </div>
 
 ## How a check works
